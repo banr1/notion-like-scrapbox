@@ -9,7 +9,6 @@ import React, {
 import { Editor, Range, Extension } from "@tiptap/core";
 import Suggestion from "@tiptap/suggestion";
 import { ReactRenderer } from "@tiptap/react";
-import { useCompletion } from "ai/react";
 import tippy from "tippy.js";
 import {
   Heading1,
@@ -24,10 +23,7 @@ import {
   Code,
   CheckSquare,
 } from "lucide-react";
-import LoadingCircle from "@/ui/shared/loading-circle";
-import { toast } from "sonner";
 import va from "@vercel/analytics";
-import Magic from "@/ui/shared/magic";
 import { handleImageUpload } from "@/lib/utils/editor";
 
 interface CommandItemProps {
@@ -40,6 +36,8 @@ interface CommandProps {
   editor: Editor;
   range: Range;
 }
+
+const iconSize = 18;
 
 const Command = Extension.create({
   name: "slash-command",
@@ -73,27 +71,11 @@ const Command = Extension.create({
 
 const getSuggestionItems = ({ query }: { query: string }) => {
   return [
-    // turn off AI feature
-    // {
-    //   title: "Continue writing",
-    //   description: "Use AI to expand your thoughts.",
-    //   searchTerms: ["gpt"],
-    //   icon: <Magic className="w-7 text-black" />,
-    // },
-    // {
-    //   title: "Send Feedback",
-    //   description: "Let us know how we can improve.",
-    //   icon: <MessageSquarePlus size={18} />,
-    //   command: ({ editor, range }: CommandProps) => {
-    //     editor.chain().focus().deleteRange(range).run();
-    //     window.open("/feedback", "_blank");
-    //   },
-    // },
     {
       title: "Text",
       description: "Just start typing with plain text.",
       searchTerms: ["p", "paragraph"],
-      icon: <Text size={18} />,
+      icon: <Text size={iconSize} />,
       command: ({ editor, range }: CommandProps) => {
         editor
           .chain()
@@ -107,7 +89,7 @@ const getSuggestionItems = ({ query }: { query: string }) => {
       title: "To-do List",
       description: "Track tasks with a to-do list.",
       searchTerms: ["todo", "task", "list", "check", "checkbox"],
-      icon: <CheckSquare size={18} />,
+      icon: <CheckSquare size={iconSize} />,
       command: ({ editor, range }: CommandProps) => {
         editor.chain().focus().deleteRange(range).toggleTaskList().run();
       },
@@ -116,7 +98,7 @@ const getSuggestionItems = ({ query }: { query: string }) => {
       title: "Heading 1",
       description: "Big section heading.",
       searchTerms: ["title", "big", "large"],
-      icon: <Heading1 size={18} />,
+      icon: <Heading1 size={iconSize} />,
       command: ({ editor, range }: CommandProps) => {
         editor
           .chain()
@@ -130,7 +112,7 @@ const getSuggestionItems = ({ query }: { query: string }) => {
       title: "Heading 2",
       description: "Medium section heading.",
       searchTerms: ["subtitle", "medium"],
-      icon: <Heading2 size={18} />,
+      icon: <Heading2 size={iconSize} />,
       command: ({ editor, range }: CommandProps) => {
         editor
           .chain()
@@ -144,7 +126,7 @@ const getSuggestionItems = ({ query }: { query: string }) => {
       title: "Heading 3",
       description: "Small section heading.",
       searchTerms: ["subtitle", "small"],
-      icon: <Heading3 size={18} />,
+      icon: <Heading3 size={iconSize} />,
       command: ({ editor, range }: CommandProps) => {
         editor
           .chain()
@@ -158,7 +140,7 @@ const getSuggestionItems = ({ query }: { query: string }) => {
       title: "Bullet List",
       description: "Create a simple bullet list.",
       searchTerms: ["unordered", "point"],
-      icon: <List size={18} />,
+      icon: <List size={iconSize} />,
       command: ({ editor, range }: CommandProps) => {
         editor.chain().focus().deleteRange(range).toggleBulletList().run();
       },
@@ -167,7 +149,7 @@ const getSuggestionItems = ({ query }: { query: string }) => {
       title: "Numbered List",
       description: "Create a list with numbering.",
       searchTerms: ["ordered"],
-      icon: <ListOrdered size={18} />,
+      icon: <ListOrdered size={iconSize} />,
       command: ({ editor, range }: CommandProps) => {
         editor.chain().focus().deleteRange(range).toggleOrderedList().run();
       },
@@ -176,7 +158,7 @@ const getSuggestionItems = ({ query }: { query: string }) => {
       title: "Quote",
       description: "Capture a quote.",
       searchTerms: ["blockquote"],
-      icon: <TextQuote size={18} />,
+      icon: <TextQuote size={iconSize} />,
       command: ({ editor, range }: CommandProps) =>
         editor
           .chain()
@@ -190,7 +172,7 @@ const getSuggestionItems = ({ query }: { query: string }) => {
       title: "Code",
       description: "Capture a code snippet.",
       searchTerms: ["codeblock"],
-      icon: <Code size={18} />,
+      icon: <Code size={iconSize} />,
       command: ({ editor, range }: CommandProps) =>
         editor.chain().focus().deleteRange(range).toggleCodeBlock().run(),
     },
@@ -198,7 +180,7 @@ const getSuggestionItems = ({ query }: { query: string }) => {
       title: "Image",
       description: "Upload an image from your computer.",
       searchTerms: ["photo", "picture", "media"],
-      icon: <ImageIcon size={18} />,
+      icon: <ImageIcon size={iconSize} />,
       command: ({ editor, range }: CommandProps) => {
         editor.chain().focus().deleteRange(range).run();
         // upload image
@@ -212,6 +194,15 @@ const getSuggestionItems = ({ query }: { query: string }) => {
           }
         };
         input.click();
+      },
+    },
+    {
+      title: "Send Feedback",
+      description: "Let us know how we can improve.",
+      icon: <MessageSquarePlus size={iconSize} />,
+      command: ({ editor, range }: CommandProps) => {
+        editor.chain().focus().deleteRange(range).run();
+        window.open("/feedback", "_blank");
       },
     },
   ].filter((item) => {
@@ -246,7 +237,6 @@ const CommandList = ({
   items,
   command,
   editor,
-  range,
 }: {
   items: CommandItemProps[];
   command: any;
@@ -255,29 +245,6 @@ const CommandList = ({
 }) => {
   const [selectedIndex, setSelectedIndex] = useState(0);
 
-  const { complete, isLoading } = useCompletion({
-    id: "novel",
-    api: "/api/generate",
-    onResponse: (response) => {
-      if (response.status === 429) {
-        toast.error("You have reached your request limit for the day.");
-        va.track("Rate Limit Reached");
-        return;
-      }
-      editor.chain().focus().deleteRange(range).run();
-    },
-    onFinish: (_prompt, completion) => {
-      // highlight the generated text
-      editor.commands.setTextSelection({
-        from: range.from,
-        to: range.from + completion.length,
-      });
-    },
-    onError: () => {
-      toast.error("Something went wrong.");
-    },
-  });
-
   const selectItem = useCallback(
     (index: number) => {
       const item = items[index];
@@ -285,15 +252,10 @@ const CommandList = ({
         command: item.title,
       });
       if (item) {
-        if (item.title === "Continue writing") {
-          const text = editor.getText();
-          complete(text);
-        } else {
-          command(item);
-        }
+        command(item);
       }
     },
-    [complete, command, editor, items],
+    [command, editor, items],
   );
 
   useEffect(() => {
@@ -352,11 +314,7 @@ const CommandList = ({
             onClick={() => selectItem(index)}
           >
             <div className="flex h-10 w-10 items-center justify-center rounded-md border border-stone-200 bg-white">
-              {item.title === "Continue writing" && isLoading ? (
-                <LoadingCircle />
-              ) : (
-                item.icon
-              )}
+              {item.icon}
             </div>
             <div>
               <p className="font-medium">{item.title}</p>

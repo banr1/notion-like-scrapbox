@@ -8,9 +8,8 @@ import { Metadata } from 'next';
 import Toaster from './toaster';
 import { ReactNode } from 'react';
 
-const title = 'Novel - Notion-style WYSIWYG editor with AI-powered autocompletions';
-const description =
-  'Novel is a Notion-style WYSIWYG editor with AI-powered autocompletions. Built with Tiptap, OpenAI, and Vercel AI SDK.';
+const title = 'Notion-like Scrapbox - Notion-like Scrapbox.';
+const description = 'Notion-like Scrapbox is a Notion-like Scrapbox.';
 
 export const metadata: Metadata = {
   title,
@@ -23,7 +22,7 @@ export const metadata: Metadata = {
     title,
     description,
     card: 'summary_large_image',
-    creator: '@steventey',
+    creator: '@banri_yanahama',
   },
   metadataBase: new URL('https://novel.sh'),
   themeColor: '#ffffff',
@@ -33,7 +32,9 @@ export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang='en'>
       <Toaster />
-      <body className={cx(cal.variable, inter.variable)}>{children}</body>
+        <body className={cx(cal.variable, inter.variable)}>
+          {children}
+        </body>
       <Analytics />
     </html>
   );
